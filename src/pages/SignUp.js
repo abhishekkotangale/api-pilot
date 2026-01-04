@@ -15,7 +15,7 @@ const SignUp = () => {
 
   const handleSubmit = async () => {
     try {
-      const res = await axios.post(`${apiUrl}/auth/signup`, form);
+      const res = await axios.post(`https://api-pilot-backend.vercel.app/auth/signup`, form);
       if (res.data.success) {
         alert("Account created successfully!");
         navigate("/signin");
