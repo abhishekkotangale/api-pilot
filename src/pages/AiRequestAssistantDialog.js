@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+
 import CloseIcon from "@mui/icons-material/Close";
 import {
     Box,
@@ -10,10 +10,8 @@ import {
     Typography,
 } from "@mui/material";
 import { useState } from "react";
-
-const ai = new GoogleGenAI({
-  apiKey: "AIzaSyCExwAa1TpZZbQsSUoDNU-nVr4Z24QjBkE",
-});
+import apiUrl from "../config";
+import axios from "axios";
 
 export default function AiRequestAssistantDialog({
   open,
@@ -23,57 +21,30 @@ export default function AiRequestAssistantDialog({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleGenerate = async () => {
-    if (!input.trim()) return;
 
-    setLoading(true);
 
-    try {
-      const res = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                text: `
-Return ONLY valid JSON.
-No markdown. No explanation.
+const handleGenerate = async () => {
+  if (!input.trim()) return;
 
-{
-  "method": "GET|POST|PUT|PATCH|DELETE",
-  "url": "",
-  "headers": { "key": "value" },
-  "body": {}
-}
-                `,
-              },
-              { text: input },
-            ],
-          },
-        ],
-      });
+  setLoading(true);
 
-      let text = res.candidates[0].content.parts[0].text;
-      text = text.replace(/```json|```/g, "").trim();
+  try {
+    const res = await axios.post(
+      `${apiUrl}/ai/generate`,
+      { prompt: input }
+    );
 
-      const parsed = JSON.parse(text);
+    onGenerate(res.data);
+    setInput("");
+    onClose();
+  } catch (e) {
+    console.error(e);
+    alert("AI could not generate a valid request");
+  }
 
-      // validation
-      if (!parsed.method || !parsed.url) {
-        throw new Error("Invalid AI response");
-      }
+  setLoading(false);
+};
 
-      onGenerate(parsed);
-      setInput("");
-      onClose();
-    } catch (e) {
-      console.error("AI Error:", e);
-      alert("AI could not generate a valid request");
-    }
-
-    setLoading(false);
-  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
