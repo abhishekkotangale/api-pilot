@@ -3,6 +3,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "./redux/authSlice";
+import config from "./config/config";
 
 const ProtectedLayout = () => {
   const [loading, setLoading] = useState(true);
@@ -12,7 +13,7 @@ const ProtectedLayout = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/auth/authenticate",{ withCredentials: true });
+        const res = await axios.get(`${config.API_BASE_URL}/auth/authenticate`,{ withCredentials: true });
 
         if (res.data && res.data.authenticate === true) {
           setAuthenticated(true);
