@@ -93,10 +93,10 @@ export default function ApiRequestTool() {
               fontSize={14}
               mr={2}
               sx={{
-                display: {
-                  xs: "none",
-                  sm: "none",
-                  md: "block",
+                display: "none",
+                "@media (min-width:900px)": {
+                  // md breakpoint is 900px by default
+                  display: "block",
                 },
               }}
             >
@@ -109,13 +109,18 @@ export default function ApiRequestTool() {
               sx={{ mr: 1 }}
               onClick={() => setAiOpen(true)}
             >
-              ✨ <Box component={"span"}  sx={{
-                display: {
-                  xs: "none",
-                  sm: "none",
-                  md: "block",
-                },
-              }} >AI Assist</Box>
+              ✨{" "}
+              <Box
+                component={"span"}
+                  sx={{
+    display: "none",
+    "@media (min-width:900px)": { // md breakpoint is 900px by default
+      display: "block",
+    },
+  }}
+              >
+                AI Assist
+              </Box>
             </Button>
 
             <IconButton
