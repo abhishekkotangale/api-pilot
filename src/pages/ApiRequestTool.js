@@ -89,7 +89,17 @@ export default function ApiRequestTool() {
 
             <Box flexGrow={1} />
 
-            <Typography fontSize={14} mr={2}>
+            <Typography
+              fontSize={14}
+              mr={2}
+              sx={{
+                display: {
+                  xs: "none",
+                  sm: "none",
+                  md: "block",
+                },
+              }}
+            >
               {user.email}
             </Typography>
 
@@ -99,7 +109,13 @@ export default function ApiRequestTool() {
               sx={{ mr: 1 }}
               onClick={() => setAiOpen(true)}
             >
-              ✨ AI Assist
+              ✨ <Box component={"span"}  sx={{
+                display: {
+                  xs: "none",
+                  sm: "none",
+                  md: "block",
+                },
+              }} >AI Assist</Box>
             </Button>
 
             <IconButton

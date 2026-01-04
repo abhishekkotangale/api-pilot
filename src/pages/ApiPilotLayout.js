@@ -1,27 +1,66 @@
 import {
-    Box,
-    Button,
-    Card,
-    CardContent,
-    Divider,
-    IconButton,
-    MenuItem,
-    Paper,
-    Select,
-    TextField,
-    Typography,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Divider,
+  IconButton,
+  MenuItem,
+  Paper,
+  Select,
+  TextField,
+  Typography,
 } from "@mui/material";
 
 import Grid from "@mui/material/Grid";
-import { Trash2 } from "lucide-react";
-import { useState } from "react";
+import axios from "axios";
+import { Delete, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import config from "../config/config";
+import SaveRequestDialog from "./SaveRequestDialog";
 
-export default function ApiPilotLayout({request , setRequest}) {
+export default function ApiPilotLayout({ request, setRequest }) {
   const { method, url, headers, body } = request;
   const [response, setResponse] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("history");
+  const [savedRequests, setSavedRequests] = useState([]);
+  const [openSaveDialog, setOpenSaveDialog] = useState(false);
+
+  const fetchSavedRequests = async () => {
+    try {
+      const res = await axios.get(`${config.API_BASE_URL}/api/history`, {
+        withCredentials: true,
+      });
+      setSavedRequests(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch saved requests", err);
+    }
+  };
+
+  const handleSaveRequest = async (name) => {
+    try {
+      await axios.post(
+        `${config.API_BASE_URL}/api/history`,
+        {
+          name,
+          request: {
+            method: request.method,
+            url: request.url,
+            headers: request.headers,
+            body: request.body,
+          },
+          response,
+        },
+        { withCredentials: true }
+      );
+
+      setOpenSaveDialog(false);
+    } catch (err) {
+      console.error("Failed to save request", err);
+    }
+  };
 
   const updateHistory = (entry) => {
     const newHistory = [entry, ...history];
@@ -38,13 +77,13 @@ export default function ApiPilotLayout({request , setRequest}) {
         jsonBody = JSON.parse(body);
       }
 
-      const start = performance.now();
 
       const res = await fetch(`${config.API_BASE_URL}/api/request/send`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           url,
           method,
@@ -55,7 +94,6 @@ export default function ApiPilotLayout({request , setRequest}) {
         }),
       });
 
-      const end = performance.now();
 
       const text = await res.text();
       let jsonParsed;
@@ -66,11 +104,11 @@ export default function ApiPilotLayout({request , setRequest}) {
       }
 
       const result = {
-        status: res.status,
-        time: Math.round(end - start),
-        size: text.length,
-        headers: Object.fromEntries(res.headers.entries()),
-        body: jsonParsed,
+        status: jsonParsed.status,
+        time: jsonParsed.responseTime,
+        size: jsonParsed.size,
+        headers: jsonParsed.headers,
+        body: jsonParsed.data,
       };
 
       setResponse(result);
@@ -80,6 +118,7 @@ export default function ApiPilotLayout({request , setRequest}) {
         url,
         headers,
         body,
+        response: result,
         timestamp: new Date().toLocaleString(),
       });
     } catch (e) {
@@ -88,6 +127,52 @@ export default function ApiPilotLayout({request , setRequest}) {
 
     setLoading(false);
   };
+  const loadSavedItem = (item) => {
+    setRequest({
+      method: item.request.method,
+      url: item.request.url,
+      headers: item.request.headers,
+      body: item.request.body || "",
+    });
+    setResponse(item.response);
+  };
+
+  const loadHistoryItem = (item) => {
+    setRequest({
+      method: item.method,
+      url: item.url,
+      headers:
+        item.headers && item.headers.length > 0
+          ? item.headers
+          : [{ key: "", value: "" }],
+      body: item.body || "",
+    });
+    if (item.response) {
+      setResponse(item.response);
+    }
+  };
+
+  const deleteHistoryItem = (index) => {
+    const updated = history.filter((_, i) => i !== index);
+    setHistory(updated);
+    localStorage.setItem("api-history", JSON.stringify(updated));
+  };
+
+  const deleteSavedItem = async (id) => {
+    try {
+      await axios.delete(`${config.API_BASE_URL}/api/history/${id}`, {
+        withCredentials: true,
+      });
+      setSavedRequests(savedRequests.filter((item) => item._id !== id));
+    } catch (err) {
+      console.error("Failed to delete saved request", err);
+    }
+  };
+
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("api-history")) || [];
+    setHistory(stored);
+  }, []);
 
   return (
     <Box p={2} sx={{ minWidth: "100vw", minHeight: "100vh" }}>
@@ -104,7 +189,7 @@ export default function ApiPilotLayout({request , setRequest}) {
                 <Select
                   size="small"
                   value={method}
-                   onChange={(e) =>
+                  onChange={(e) =>
                     setRequest({ ...request, method: e.target.value })
                   }
                 >
@@ -138,11 +223,11 @@ export default function ApiPilotLayout({request , setRequest}) {
                   fontSize={14}
                   sx={{ cursor: "pointer" }}
                   onClick={() =>
-                  setRequest({
-                    ...request,
-                    headers: [...headers, { key: "", value: "" }],
-                  })
-                }
+                    setRequest({
+                      ...request,
+                      headers: [...headers, { key: "", value: "" }],
+                    })
+                  }
                 >
                   + Add Header
                 </Typography>
@@ -217,10 +302,21 @@ export default function ApiPilotLayout({request , setRequest}) {
         <Grid size={{ xs: 12, md: 6, lg: 4 }}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography fontWeight={600}>Response</Typography>
-                    <Button size="small" sx={{backgroundColor:"green" , color:"white"}}> Save </Button>
-                </Box>
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Typography fontWeight={600}>Response</Typography>
+                <Button
+                  size="small"
+                  sx={{ backgroundColor: "green", color: "white" }}
+                  disabled={!response}
+                  onClick={() => setOpenSaveDialog(true)}
+                >
+                  Save
+                </Button>
+              </Box>
               <Divider sx={{ my: 2 }} />
 
               {response ? (
@@ -271,25 +367,122 @@ export default function ApiPilotLayout({request , setRequest}) {
               <Typography fontWeight={600}>Requests</Typography>
 
               <Box display="flex" mt={2} mb={2}>
-                <Button fullWidth variant="contained">
+                <Button
+                  fullWidth
+                  variant={activeTab === "history" ? "contained" : "text"}
+                  onClick={() => setActiveTab("history")}
+                >
                   History
                 </Button>
-                <Button fullWidth variant="text">
+
+                <Button
+                  fullWidth
+                  variant={activeTab === "saved" ? "contained" : "text"}
+                  onClick={() => {
+                    setActiveTab("saved");
+                    fetchSavedRequests();
+                  }}
+                >
                   Saved
                 </Button>
               </Box>
 
               <Divider />
 
-              <Box mt={3} textAlign="center" color="text.secondary">
-                No history yet.
-                <br />
-                Send a request to get started.
+              <Box mt={2} maxHeight={500} overflow="auto">
+                {/* ---------------- HISTORY ---------------- */}
+                {activeTab === "history" &&
+                  (history.length === 0 ? (
+                    <Typography textAlign="center" color="text.secondary">
+                      No history yet.
+                      <br />
+                      Send a request to get started.
+                    </Typography>
+                  ) : (
+                    history.map((item, index) => (
+                      <Paper key={index} sx={{ p: 1, mb: 1 }}>
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                        >
+                          <Typography fontWeight="bold">
+                            {item.method}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => deleteHistoryItem(index)}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Box>
+
+                        <Typography variant="body2">{item.url}</Typography>
+                        <Typography variant="caption">
+                          {item.timestamp}
+                        </Typography>
+
+                        <Button
+                          size="small"
+                          onClick={() => loadHistoryItem(item)}
+                        >
+                          Load
+                        </Button>
+                      </Paper>
+                    ))
+                  ))}
+
+                {/* ---------------- SAVED ---------------- */}
+                {activeTab === "saved" &&
+                  (savedRequests.length === 0 ? (
+                    <Typography textAlign="center" color="text.secondary">
+                      No saved requests.
+                    </Typography>
+                  ) : (
+                    savedRequests.map((item) => (
+                      <Paper key={item._id} sx={{ p: 1, mb: 1 }}>
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                        >
+                          <Typography fontWeight="bold">{item.name}</Typography>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => deleteSavedItem(item._id)}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Box>
+
+                        <Typography variant="body2">
+                          {item.request.method}
+                        </Typography>
+                        <Typography variant="body2">
+                          {item.request.url}
+                        </Typography>
+
+                        <Button
+                          size="small"
+                          onClick={() => loadSavedItem(item)}
+                        >
+                          Load
+                        </Button>
+                      </Paper>
+                    ))
+                  ))}
               </Box>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
+      <SaveRequestDialog
+        open={openSaveDialog}
+        onClose={() => setOpenSaveDialog(false)}
+        onSave={handleSaveRequest}
+      />
     </Box>
   );
 }
