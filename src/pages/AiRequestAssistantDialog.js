@@ -31,7 +31,8 @@ const handleGenerate = async () => {
   try {
     const res = await axios.post(
       `${config.API_BASE_URL}/ai/generate`,
-      { prompt: input }
+      { prompt: input },
+      {withCredentials : true}
     );
 
     onGenerate(res.data);
