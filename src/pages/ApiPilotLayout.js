@@ -15,7 +15,7 @@ import {
 import Grid from "@mui/material/Grid";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
-import apiUrl from "../config";
+import config from "../config/config";
 
 export default function ApiPilotLayout({request , setRequest}) {
   const { method, url, headers, body } = request;
@@ -40,7 +40,7 @@ export default function ApiPilotLayout({request , setRequest}) {
 
       const start = performance.now();
 
-      const res = await fetch(`${apiUrl}/api/request/send`, {
+      const res = await fetch(`${config.API_BASE_URL}/api/request/send`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

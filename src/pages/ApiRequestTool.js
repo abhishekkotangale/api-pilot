@@ -18,7 +18,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import AiRequestAssistantDialog from "./AiRequestAssistantDialog";
 import ApiPilotLayout from "./ApiPilotLayout";
-import apiUrl from "../config";
+import config from "../config/config";
 
 export default function ApiRequestTool() {
   const navigate = useNavigate();
@@ -63,7 +63,7 @@ export default function ApiRequestTool() {
 
   const handleLogout = async () => {
     try {
-      await axios.get(`${apiUrl}/auth/logout`, {
+      await axios.get(`${config.API_BASE_URL}/auth/logout`, {
         withCredentials: true,
       });
       navigate("/signin");

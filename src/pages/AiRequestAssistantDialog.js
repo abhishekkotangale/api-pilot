@@ -10,8 +10,8 @@ import {
     Typography,
 } from "@mui/material";
 import { useState } from "react";
-import apiUrl from "../config";
 import axios from "axios";
+import config from "../config/config";
 
 export default function AiRequestAssistantDialog({
   open,
@@ -30,7 +30,7 @@ const handleGenerate = async () => {
 
   try {
     const res = await axios.post(
-      `${apiUrl}/ai/generate`,
+      `${config.API_BASE_URL}/ai/generate`,
       { prompt: input }
     );
 

@@ -13,7 +13,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginSuccess } from "../redux/authSlice";
 import { useDispatch } from "react-redux";
-import apiUrl from "../config";
+import config from "../config/config";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -27,7 +27,7 @@ const SignIn = () => {
 
   const handleSubmit = async () => {
     try {
-      const res = await axios.post(`${apiUrl}/auth/login`, form, {
+      const res = await axios.post(`${config.API_BASE_URL}/auth/login`, form, {
         withCredentials: true,
       });
       debugger;
@@ -44,7 +44,7 @@ const SignIn = () => {
   const handleGoogleSuccess = async (cred) => {
     try {
       const res = await axios.post(
-        `${apiUrl}/auth/auth/google`,
+        `${config.API_BASE_URL}/auth/auth/google`,
         { token: cred.credential },
         { withCredentials: true }
       );

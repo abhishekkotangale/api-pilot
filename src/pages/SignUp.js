@@ -3,7 +3,7 @@ import axios from "axios";
 import { Plane } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import apiUrl from "../config";
+import config from "../config/config";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -15,7 +15,8 @@ const SignUp = () => {
 
   const handleSubmit = async () => {
     try {
-      const res = await axios.post(`https://api-pilot-backend.vercel.app/auth/signup`, form);
+      console.log(config.API_BASE_URL);
+      const res = await axios.post(`${config.API_BASE_URL}/auth/signup`, form);
       if (res.data.success) {
         alert("Account created successfully!");
         navigate("/signin");
