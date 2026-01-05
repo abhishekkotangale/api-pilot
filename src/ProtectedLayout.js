@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "./redux/authSlice";
 import config from "./config/config";
+import CircularProgress from "@mui/material/CircularProgress";
+import Box from "@mui/material/Box";
 
 const ProtectedLayout = () => {
   const [loading, setLoading] = useState(true);
@@ -29,7 +31,20 @@ const ProtectedLayout = () => {
     checkAuth();
   }, []);
 
-  if (loading) return <div>Checking authentication...</div>;
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <CircularProgress sx={{ color: "#5b5fff" }} />
+      </Box>
+    );
+}
 
   if (!authenticated) return <Navigate to="/signin" replace />;
 
