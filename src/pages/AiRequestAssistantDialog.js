@@ -1,17 +1,15 @@
-
 import CloseIcon from "@mui/icons-material/Close";
 import {
-    Box,
-    Button,
-    Dialog,
-    DialogContent,
-    IconButton,
-    TextField,
-    Typography,
+  Box,
+  Button,
+  Dialog,
+  DialogContent,
+  IconButton,
+  TextField,
+  Typography,
 } from "@mui/material";
 import { useState } from "react";
-import axios from "axios";
-import config from "../config/config";
+import axiosInstance from "../util/axiosInstance";
 
 export default function AiRequestAssistantDialog({
   open,
@@ -21,31 +19,27 @@ export default function AiRequestAssistantDialog({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const handleGenerate = async () => {
+    if (!input.trim()) return;
 
+    setLoading(true);
 
-const handleGenerate = async () => {
-  if (!input.trim()) return;
+    try {
+      const res = await axiosInstance.post(
+     `/ai/generate`,
+        { prompt: input },
+      );
 
-  setLoading(true);
+      onGenerate(res.data);
+      setInput("");
+      onClose();
+    } catch (e) {
+      console.error(e);
+      alert("AI could not generate a valid request");
+    }
 
-  try {
-    const res = await axios.post(
-      `${config.API_BASE_URL}/ai/generate`,
-      { prompt: input },
-      {withCredentials : true}
-    );
-
-    onGenerate(res.data);
-    setInput("");
-    onClose();
-  } catch (e) {
-    console.error(e);
-    alert("AI could not generate a valid request");
-  }
-
-  setLoading(false);
-};
-
+    setLoading(false);
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>

@@ -1,9 +1,9 @@
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
-import axios from "axios";
 import { Plane } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import config from "../config/config";
+import axiosInstance from "../util/axiosInstance";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ const SignUp = () => {
   const handleSubmit = async () => {
     try {
       console.log(config.API_BASE_URL);
-      const res = await axios.post(`${config.API_BASE_URL}/auth/signup`, form);
+      const res = await axiosInstance.post(`/auth/signup`, form);
       if (res.data.success) {
         alert("Account created successfully!");
         navigate("/signin");
@@ -49,7 +49,7 @@ const SignUp = () => {
         }}
       >
         <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-          <Plane color="#5b5fff" size={"30px"}/>
+          <Plane color="#5b5fff" size={"30px"} />
           <Typography variant="h5" sx={{ ml: 1, fontWeight: 700 }}>
             API Pilot
           </Typography>

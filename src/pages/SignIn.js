@@ -7,13 +7,12 @@ import {
   Typography,
 } from "@mui/material";
 import { GoogleLogin } from "@react-oauth/google";
-import axios from "axios";
 import { Plane } from "lucide-react";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { loginSuccess } from "../redux/authSlice";
-import { useDispatch } from "react-redux";
-import config from "../config/config";
+import axiosInstance from "../util/axiosInstance";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -27,13 +26,12 @@ const SignIn = () => {
 
   const handleSubmit = async () => {
     try {
-      const res = await axios.post(`${config.API_BASE_URL}/auth/login`, form, {
-        withCredentials: true,
-      });
-      debugger;
-
+      const res = await axiosInstance.post(`/auth/login`, form);
       if (res.data.success) {
+        const token = res.data.token;
+        localStorage.setItem("token", token);
         dispatch(loginSuccess(res.data.user));
+        axiosInstance.defaults.headers.common["Authorization"] = token;
         navigate("/");
       }
     } catch (err) {
@@ -43,13 +41,14 @@ const SignIn = () => {
 
   const handleGoogleSuccess = async (cred) => {
     try {
-      const res = await axios.post(
-        `${config.API_BASE_URL}/auth/auth/google`,
-        { token: cred.credential },
-        { withCredentials: true }
-      );
+      const res = await axiosInstance.post(`/auth/auth/google`, {
+        token: cred.credential,
+      });
       if (res.data.success) {
-        dispatch(loginSuccess(res.data.user)); 
+        const token = res.data.token;
+        localStorage.setItem("token", token);
+        dispatch(loginSuccess(res.data.user));
+        axiosInstance.defaults.headers.common["Authorization"] = token;
         navigate("/");
       }
     } catch (err) {
@@ -80,7 +79,7 @@ const SignIn = () => {
         }}
       >
         <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-          <Plane color="#5b5fff" size={"30px"}/>
+          <Plane color="#5b5fff" size={"30px"} />
           <Typography variant="h5" sx={{ ml: 1, fontWeight: 700 }}>
             API Pilot
           </Typography>

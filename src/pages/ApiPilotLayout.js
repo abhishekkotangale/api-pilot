@@ -13,10 +13,10 @@ import {
 } from "@mui/material";
 
 import Grid from "@mui/material/Grid";
-import axios from "axios";
 import { Delete, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import config from "../config/config";
+import axiosInstance from "../util/axiosInstance";
 import SaveRequestDialog from "./SaveRequestDialog";
 
 export default function ApiPilotLayout({ request, setRequest }) {
@@ -30,9 +30,7 @@ export default function ApiPilotLayout({ request, setRequest }) {
 
   const fetchSavedRequests = async () => {
     try {
-      const res = await axios.get(`${config.API_BASE_URL}/api/history`, {
-        withCredentials: true,
-      });
+      const res = await axiosInstance.get(`/api/history`);
       setSavedRequests(res.data || []);
     } catch (err) {
       console.error("Failed to fetch saved requests", err);
@@ -41,20 +39,16 @@ export default function ApiPilotLayout({ request, setRequest }) {
 
   const handleSaveRequest = async (name) => {
     try {
-      await axios.post(
-        `${config.API_BASE_URL}/api/history`,
-        {
-          name,
-          request: {
-            method: request.method,
-            url: request.url,
-            headers: request.headers,
-            body: request.body,
-          },
-          response,
+      await axiosInstance.post(`/api/history`, {
+        name,
+        request: {
+          method: request.method,
+          url: request.url,
+          headers: request.headers,
+          body: request.body,
         },
-        { withCredentials: true }
-      );
+        response,
+      });
 
       setOpenSaveDialog(false);
     } catch (err) {
@@ -77,7 +71,6 @@ export default function ApiPilotLayout({ request, setRequest }) {
         jsonBody = JSON.parse(body);
       }
 
-
       const res = await fetch(`${config.API_BASE_URL}/api/request/send`, {
         method: "POST",
         headers: {
@@ -93,7 +86,6 @@ export default function ApiPilotLayout({ request, setRequest }) {
           body: jsonBody,
         }),
       });
-
 
       const text = await res.text();
       let jsonParsed;
@@ -160,9 +152,7 @@ export default function ApiPilotLayout({ request, setRequest }) {
 
   const deleteSavedItem = async (id) => {
     try {
-      await axios.delete(`${config.API_BASE_URL}/api/history/${id}`, {
-        withCredentials: true,
-      });
+      await axiosInstance.delete(`/api/history/${id}`);
       setSavedRequests(savedRequests.filter((item) => item._id !== id));
     } catch (err) {
       console.error("Failed to delete saved request", err);

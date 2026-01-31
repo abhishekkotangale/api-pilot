@@ -1,11 +1,10 @@
-import { Navigate, Outlet } from "react-router-dom";
-import axios from "axios";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
+import { Navigate, Outlet } from "react-router-dom";
 import { loginSuccess } from "./redux/authSlice";
-import config from "./config/config";
-import CircularProgress from "@mui/material/CircularProgress";
-import Box from "@mui/material/Box";
+import axiosInstance from "./util/axiosInstance";
 
 const ProtectedLayout = () => {
   const [loading, setLoading] = useState(true);
@@ -15,7 +14,8 @@ const ProtectedLayout = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await axios.get(`${config.API_BASE_URL}/auth/authenticate`,{ withCredentials: true });
+        axiosInstance.defaults.headers.common["Authorization"] = localStorage.getItem("token");
+        const res = await axiosInstance.get(`/auth/authenticate`);
 
         if (res.data && res.data.authenticate === true) {
           setAuthenticated(true);
@@ -45,7 +45,6 @@ const ProtectedLayout = () => {
       </Box>
     );
 }
-
   if (!authenticated) return <Navigate to="/signin" replace />;
 
   return <Outlet />;

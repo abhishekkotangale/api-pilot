@@ -11,14 +11,13 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import axios from "axios";
 import { Plane } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../util/axiosInstance";
 import AiRequestAssistantDialog from "./AiRequestAssistantDialog";
 import ApiPilotLayout from "./ApiPilotLayout";
-import config from "../config/config";
 
 export default function ApiRequestTool() {
   const navigate = useNavigate();
@@ -45,7 +44,7 @@ export default function ApiRequestTool() {
         },
         shape: { borderRadius: 10 },
       }),
-    [mode]
+    [mode],
   );
   const handleAiGenerate = (data) => {
     setRequest({
@@ -63,9 +62,8 @@ export default function ApiRequestTool() {
 
   const handleLogout = async () => {
     try {
-      await axios.get(`${config.API_BASE_URL}/auth/logout`, {
-        withCredentials: true,
-      });
+      await axiosInstance.get(`/auth/logout`);
+      localStorage.removeItem("token");
       navigate("/signin");
     } catch (error) {
       alert("Error logging out");
@@ -112,12 +110,13 @@ export default function ApiRequestTool() {
               ✨{" "}
               <Box
                 component={"span"}
-                  sx={{
-    display: "none",
-    "@media (min-width:900px)": { // md breakpoint is 900px by default
-      display: "block",
-    },
-  }}
+                sx={{
+                  display: "none",
+                  "@media (min-width:900px)": {
+                    // md breakpoint is 900px by default
+                    display: "block",
+                  },
+                }}
               >
                 AI Assist
               </Box>
