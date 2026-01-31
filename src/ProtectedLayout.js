@@ -29,7 +29,7 @@ const ProtectedLayout = () => {
     };
 
     checkAuth();
-  }, []);
+  }, [dispatch]);
 
   if (loading) {
     return (
@@ -44,7 +44,8 @@ const ProtectedLayout = () => {
         <CircularProgress sx={{ color: "#5b5fff" }} />
       </Box>
     );
-}
+  }
+  
   if (!authenticated) return <Navigate to="/signin" replace />;
 
   return <Outlet />;
