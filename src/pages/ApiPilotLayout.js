@@ -23,7 +23,6 @@ export default function ApiPilotLayout({ request, setRequest }) {
   const { method, url, headers, body } = request;
   const [response, setResponse] = useState(null);
   const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("history");
   const [savedRequests, setSavedRequests] = useState([]);
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
@@ -63,7 +62,6 @@ export default function ApiPilotLayout({ request, setRequest }) {
   };
 
   const sendRequest = async () => {
-    setLoading(true);
 
     try {
       let jsonBody = null;
@@ -117,7 +115,6 @@ export default function ApiPilotLayout({ request, setRequest }) {
       setResponse({ error: e.message });
     }
 
-    setLoading(false);
   };
   const loadSavedItem = (item) => {
     setRequest({
